@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>hogrefe - start</title>
-  <link rel="icon" type="image/png" href="https://www.hogrefe.com/_assets/2cb2a4083936226ae65d527b2738beba/Images/touch-icons/favicon-32x32.png" sizes="32x32">
+  <link rel="icon" type="image/png" href="https://www.hogrefe.com/_assets/2cb2a4083936226ae65d527b2738beba/Images/touch-icons/favicon-32x32.png" sizes="32x32" />
   <style>
     body {
       font-family: sans-serif;
       background: white;
-      color: white;
+      color: black;
       display: flex;
       flex-direction: column;
       align-items: center;
       padding-top: 50px;
+      max-width: 350px;
+      margin: auto;
+      user-select: none; /* to avoid accidental text select while dragging */
     }
 
     button {
@@ -21,9 +24,10 @@
       font-size: 18px;
       background: #dce317;
       border: none;
-      color: white;
+      color: black;
       cursor: pointer;
       transition: background 0.3s;
+      margin: 5px 0;
     }
 
     button:hover {
@@ -33,22 +37,24 @@
     .calculator-container {
       width: 100%;
       max-width: 300px;
+      margin-top: 15px;
     }
 
-    .calculator-input {
-      width: 100%;
-      padding: 10px;
-      border: 10px solid #dce317;
-      background: white;
-      color: black;
+    input[type="text"], input[type="number"] {
+      width: 95%;
+      padding: 8px;
+      margin: 5px 0 10px;
+      border: 2px solid #dce317;
       outline: none;
-      transition: box-shadow 0.3s;
+      font-size: 16px;
     }
 
     .calculator-result {
       margin-top: 10px;
       color: black;
       text-align: center;
+      min-height: 24px;
+      font-weight: bold;
     }
 
     /* Password overlay */
@@ -74,35 +80,149 @@
 
     #passwordScreen button {
       background: #dce317;
-      color: white;
+      color: black;
       font-size: 18px;
       padding: 10px;
       border: none;
       cursor: pointer;
+      margin-top: 10px;
     }
 
     #passwordError {
       color: red;
       margin-top: 10px;
     }
+
+    /* Pop-up windows style, Windows style no border-radius */
+    .popup {
+      position: fixed;
+      width: 320px;
+      background: #f7f7a1;
+      border: 2px solid #dce317;
+      top: 100px;
+      left: 100px;
+      box-shadow: 3px 3px 5px rgba(0,0,0,0.3);
+      user-select: none;
+      z-index: 1000;
+    }
+
+    .popup-header {
+      background: #dce317;
+      padding: 6px 10px;
+      cursor: move;
+      font-weight: bold;
+      color: black;
+      border-bottom: 2px solid black;
+    }
+
+    .popup-close {
+      float: right;
+      cursor: pointer;
+      font-weight: normal;
+      font-size: 18px;
+      margin-left: 10px;
+      color: black;
+    }
+
+    .popup-content {
+      padding: 10px;
+      color: black;
+    }
+
+    /* No border-radius on anything */
   </style>
 </head>
 <body>
 
   <div id="passwordScreen">
-    <input type="password" id="passwordInput" placeholder="Enter Password">
+    <input type="password" id="passwordInput" placeholder="Enter Password" />
     <button onclick="checkPassword()">Unlock</button>
     <div id="passwordError"></div>
   </div>
 
-  <h1>AI Assistant Launcher</h1>
-  <button onclick="launchAI('chatgpt')">CG</button>
-  <button onclick="launchAI('claude')">CA</button>
-  <button onclick="launchAI('humanize')">HA</button>
+  <button onclick="launchAI('chatgpt')">GpT</button>
+  <button onclick="launchAI('humanize')">Hum</button>
 
   <div class="calculator-container">
-    <input type="text" id="calculator" class="calculator-input" placeholder="EC" oninput="calculate()">
+    <input type="text" id="calculator" class="calculator-input" placeholder="Enter expression (e.g. 2+2*3)" oninput="calculate()" />
     <div id="result" class="calculator-result"></div>
+  </div>
+
+  <button onclick="openPopup('unitConverterPopup')">Unit Converter (cm/inches)</button>
+  <button onclick="openPopup('quadSolverPopup')">Quadratic Formula Solver</button>
+  <button onclick="openPopup('primeCheckerPopup')">Prime Number Checker</button>
+  <button onclick="openPopup('multiplicationTablePopup')">Multiplication Table</button>
+  <button onclick="openPopup('formulaHelperPopup')">Math Formulas Helper</button>
+
+  <!-- Unit Converter Popup -->
+  <div id="unitConverterPopup" class="popup" style="display:none;">
+    <div class="popup-header" onmousedown="dragStart(event, 'unitConverterPopup')">
+      Unit Converter
+      <span class="popup-close" onclick="closePopup('unitConverterPopup')">×</span>
+    </div>
+    <div class="popup-content">
+      <label>Centimeters: <input type="number" id="cmInput" oninput="convertCmToIn()" /></label>
+      <div class="calculator-result" id="cmToInResult"></div>
+    </div>
+  </div>
+
+  <!-- Quadratic Solver Popup -->
+  <div id="quadSolverPopup" class="popup" style="display:none;">
+    <div class="popup-header" onmousedown="dragStart(event, 'quadSolverPopup')">
+      Quadratic Formula Solver
+      <span class="popup-close" onclick="closePopup('quadSolverPopup')">×</span>
+    </div>
+    <div class="popup-content">
+      <label>a: <input type="number" id="quadA" /></label><br />
+      <label>b: <input type="number" id="quadB" /></label><br />
+      <label>c: <input type="number" id="quadC" /></label><br />
+      <button onclick="solveQuadratic()">Solve</button>
+      <div class="calculator-result" id="quadResult"></div>
+    </div>
+  </div>
+
+  <!-- Prime Checker Popup -->
+  <div id="primeCheckerPopup" class="popup" style="display:none;">
+    <div class="popup-header" onmousedown="dragStart(event, 'primeCheckerPopup')">
+      Prime Number Checker
+      <span class="popup-close" onclick="closePopup('primeCheckerPopup')">×</span>
+    </div>
+    <div class="popup-content">
+      <label>Number: <input type="number" id="primeInput" /></label>
+      <button onclick="checkPrime()">Check</button>
+      <div class="calculator-result" id="primeResult"></div>
+    </div>
+  </div>
+
+  <!-- Multiplication Table Popup -->
+  <div id="multiplicationTablePopup" class="popup" style="display:none; max-height: 300px; overflow-y: auto;">
+    <div class="popup-header" onmousedown="dragStart(event, 'multiplicationTablePopup')">
+      Multiplication Table
+      <span class="popup-close" onclick="closePopup('multiplicationTablePopup')">×</span>
+    </div>
+    <div class="popup-content">
+      <label>Number: <input type="number" id="multNum" oninput="generateMultTable()" /></label>
+      <div class="calculator-result" id="multTable"></div>
+    </div>
+  </div>
+
+  <!-- Formula Helper Popup -->
+  <div id="formulaHelperPopup" class="popup" style="display:none;">
+    <div class="popup-header" onmousedown="dragStart(event, 'formulaHelperPopup')">
+      Math Formulas Helper
+      <span class="popup-close" onclick="closePopup('formulaHelperPopup')">×</span>
+    </div>
+    <div class="popup-content">
+      <select id="formulaSelect" onchange="showFormula()">
+        <option value="">Select Formula</option>
+        <option value="circleArea">Area of Circle</option>
+        <option value="pythagoras">Pythagoras Theorem</option>
+        <option value="triangleArea">Area of Triangle</option>
+        <option value="circleCircumference">Circumference of Circle</option>
+        <option value="rectangleArea">Area of Rectangle</option>
+      </select>
+      <div class="calculator-result" id="formulaResult"></div>
+    </div>
   </div>
 
   <script>
@@ -134,7 +254,7 @@
     function calculate() {
       const input = document.getElementById('calculator').value;
       const resultDiv = document.getElementById('result');
-      
+
       if (!input) {
         resultDiv.textContent = '';
         return;
@@ -158,6 +278,194 @@
       } else {
         error.textContent = 'Incorrect password';
       }
+    }
+
+    // Popup open/close
+    function openPopup(id) {
+      const popup = document.getElementById(id);
+      if (popup.style.display === 'block') {
+        popup.style.display = 'none';
+      } else {
+        popup.style.display = 'block';
+        // Bring popup to front
+        bringToFront(popup);
+      }
+    }
+
+    function closePopup(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    // Bring popup to front on click
+    function bringToFront(element) {
+      const allPopups = document.querySelectorAll('.popup');
+      let maxZ = 1000;
+      allPopups.forEach(p => {
+        const z = parseInt(window.getComputedStyle(p).zIndex) || 1000;
+        if (z > maxZ) maxZ = z;
+      });
+      element.style.zIndex = maxZ + 1;
+    }
+
+    // Drag functionality
+    let dragData = {
+      dragging: false,
+      offsetX: 0,
+      offsetY: 0,
+      element: null
+    };
+
+    function dragStart(e, id) {
+      dragData.dragging = true;
+      dragData.element = document.getElementById(id);
+      const rect = dragData.element.getBoundingClientRect();
+      dragData.offsetX = e.clientX - rect.left;
+      dragData.offsetY = e.clientY - rect.top;
+
+      bringToFront(dragData.element);
+
+      window.addEventListener('mousemove', dragMove);
+      window.addEventListener('mouseup', dragEnd);
+      e.preventDefault();
+    }
+
+    function dragMove(e) {
+      if (!dragData.dragging) return;
+
+      let x = e.clientX - dragData.offsetX;
+      let y = e.clientY - dragData.offsetY;
+
+      // Keep popup inside viewport (basic clamp)
+      const popup = dragData.element;
+      const winWidth = window.innerWidth;
+      const winHeight = window.innerHeight;
+      const popupWidth = popup.offsetWidth;
+      const popupHeight = popup.offsetHeight;
+
+      if (x < 0) x = 0;
+      else if (x + popupWidth > winWidth) x = winWidth - popupWidth;
+
+      if (y < 0) y = 0;
+      else if (y + popupHeight > winHeight) y = winHeight - popupHeight;
+
+      popup.style.left = x + 'px';
+      popup.style.top = y + 'px';
+    }
+
+    function dragEnd(e) {
+      dragData.dragging = false;
+      dragData.element = null;
+      window.removeEventListener('mousemove', dragMove);
+      window.removeEventListener('mouseup', dragEnd);
+    }
+
+    // Unit converter: cm to inches
+    function convertCmToIn() {
+      const cm = parseFloat(document.getElementById('cmInput').value);
+      const resultDiv = document.getElementById('cmToInResult');
+      if (isNaN(cm)) {
+        resultDiv.textContent = '';
+        return;
+      }
+      const inches = cm / 2.54;
+      resultDiv.textContent = `${cm} cm = ${inches.toFixed(3)} inches`;
+    }
+
+    // Quadratic formula solver
+    function solveQuadratic() {
+      const a = parseFloat(document.getElementById('quadA').value);
+      const b = parseFloat(document.getElementById('quadB').value);
+      const c = parseFloat(document.getElementById('quadC').value);
+      const resultDiv = document.getElementById('quadResult');
+
+      if (isNaN(a) || isNaN(b) || isNaN(c)) {
+        resultDiv.textContent = 'Please enter valid numbers for a, b, and c.';
+        return;
+      }
+      if (a === 0) {
+        resultDiv.textContent = 'a cannot be 0 in a quadratic equation.';
+        return;
+      }
+
+      const discriminant = b * b - 4 * a * c;
+      if (discriminant < 0) {
+        resultDiv.textContent = 'No real roots.';
+        return;
+      }
+
+      const sqrtD = Math.sqrt(discriminant);
+      const root1 = (-b + sqrtD) / (2 * a);
+      const root2 = (-b - sqrtD) / (2 * a);
+      if (root1 === root2) {
+        resultDiv.textContent = `One root: x = ${root1.toFixed(4)}`;
+      } else {
+        resultDiv.textContent = `Roots: x₁ = ${root1.toFixed(4)}, x₂ = ${root2.toFixed(4)}`;
+      }
+    }
+
+    // Prime number checker
+    function checkPrime() {
+      const num = parseInt(document.getElementById('primeInput').value, 10);
+      const resultDiv = document.getElementById('primeResult');
+
+      if (isNaN(num) || num < 2) {
+        resultDiv.textContent = 'Enter an integer greater than 1.';
+        return;
+      }
+
+      for (let i = 2; i <= Math.sqrt(num); i++) {
+        if (num % i === 0) {
+          resultDiv.textContent = `${num} is NOT a prime number.`;
+          return;
+        }
+      }
+      resultDiv.textContent = `${num} is a prime number!`;
+    }
+
+    // Multiplication table generator
+    function generateMultTable() {
+      const n = parseInt(document.getElementById('multNum').value, 10);
+      const container = document.getElementById('multTable');
+      if (isNaN(n) || n < 1) {
+        container.innerHTML = '';
+        return;
+      }
+      let html = '<table style="width:100%; border-collapse: collapse;">';
+      for (let i = 1; i <= 12; i++) {
+        html += `<tr><td style="border: 1px solid #000; padding: 4px;">${n} × ${i} =</td><td style="border: 1px solid #000; padding: 4px;">${n * i}</td></tr>`;
+      }
+      html += '</table>';
+      container.innerHTML = html;
+    }
+
+    // Formula helper
+    function showFormula() {
+      const select = document.getElementById('formulaSelect');
+      const resultDiv = document.getElementById('formulaResult');
+      const val = select.value;
+      let formulaText = '';
+
+      switch (val) {
+        case 'circleArea':
+          formulaText = 'Area of Circle: A = π × r²';
+          break;
+        case 'pythagoras':
+          formulaText = 'Pythagoras Theorem: a² + b² = c²';
+          break;
+        case 'triangleArea':
+          formulaText = 'Area of Triangle: A = (base × height) / 2';
+          break;
+        case 'circleCircumference':
+          formulaText = 'Circumference of Circle: C = 2 × π × r';
+          break;
+        case 'rectangleArea':
+          formulaText = 'Area of Rectangle: A = width × height';
+          break;
+        default:
+          formulaText = '';
+      }
+
+      resultDiv.textContent = formulaText;
     }
   </script>
 </body>
