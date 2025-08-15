@@ -148,7 +148,7 @@
     <div id="result" class="calculator-result"></div>
   </div>
 
-  <button onclick="openPopup('unitConverterPopup')">Unit Converter (cm/inches)</button>
+  <button onclick="openPopup('unitConverterPopup')">Unit Converter (cm/meters)</button>
   <button onclick="openPopup('quadSolverPopup')">Quadratic Formula Solver</button>
   <button onclick="openPopup('primeCheckerPopup')">Prime Number Checker</button>
   <button onclick="openPopup('multiplicationTablePopup')">Multiplication Table</button>
@@ -359,16 +359,16 @@
       window.removeEventListener('mouseup', dragEnd);
     }
 
-    // Unit converter: cm to inches
-    function convertCmToIn() {
+    // Unit converter: cm to meters
+    function convertCmToMeters() {
       const cm = parseFloat(document.getElementById('cmInput').value);
       const resultDiv = document.getElementById('cmToInResult');
       if (isNaN(cm)) {
         resultDiv.textContent = '';
         return;
       }
-      const inches = cm / 2.54;
-      resultDiv.textContent = `${cm} cm = ${inches.toFixed(3)} inches`;
+      const meters = cm / 100;
+      resultDiv.textContent = `${cm} cm = ${meters.toFixed(3)} meters`;
     }
 
     // Quadratic formula solver
